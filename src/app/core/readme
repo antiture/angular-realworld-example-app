@@ -1,0 +1,137 @@
+这个文件夹位置在做什么
+
+路径：
+src/app/core/interceptors/api.interceptor.ts
+这是一个典型 Angular Core 层结构。
+core/ 的语义（工程共识）
+core = 应用级基础设施（全局、单例、横切关注点）
+
+只放 “全 App 共享” 的东西：
+interceptors（拦截器）
+auth / token
+error handling
+guards
+全局 services
+
+👉 不允许出现业务、页面、feature 逻辑。
+2️⃣ interceptors 这一层的职责定位
+Interceptor = HTTP Pipeline 中的 Middleware
+
+对标：
+Angular HttpInterceptor
+↔
+ASP.NET Core Middleware / DelegatingHandler
+
+
+典型用途
+Base URL
+Auth Header
+Retry / Timeout
+Error normalization
+Logging / tracing
+
+3️⃣ 这段代码在干什么（逐行）
+import { HttpInterceptorFn } from '@angular/common/http';
+
+Angular 15+ 新写法
+函数式 interceptor
+替代 class + implements
+export const apiInterceptor: HttpInterceptorFn = (req, next) => {
+
+req：不可变 HttpRequest
+next：下一个 interceptor / backend
+
+责任链模式
+
+const apiReq = req.clone({
+  url: `https://api.realworld.show/api${req.url}`,
+});
+
+
+关键点：
+
+HttpRequest 是 immutable
+所有修改必须 clone
+这里做的是：
+relative url
+→ absolute api base url
+return next(apiReq);
+把“改过的请求”交给下游
+不在这里 subscribe
+不在这里处理业务
+
+4️⃣ 这个 interceptor 的职责边界
+✅ 合法行为
+✔ 拼接 base URL
+✔ 改 header
+✔ 改 params
+✔ 转发请求
+
+❌ 违规行为
+✘ if/else 业务判断
+✘ 调其他 service
+✘ 映射 DTO
+✘ 管理状态
+
+
+一句话：
+
+Interceptor = 纯技术横切层
+
+5️⃣ 写作习惯（这是“成熟 Angular”的信号）
+① 文件命名
+api.interceptor.ts
+error.interceptor.ts
+token.interceptor.ts
+
+
+一个文件 = 一个关注点
+
+不搞“万能 interceptor”
+
+② 使用 HttpInterceptorFn（而不是 class）
+
+原因：
+
+✔ 无状态
+✔ 易测试
+✔ 易组合
+✔ 更函数式（像 Rx）
+
+③ 不 hard-code 在 service
+
+❌ 错误示例：
+
+this.http.get('https://api.xxx.com/users')
+
+
+✅ 正确做法：
+this.http.get('/users')
+Base URL 统一在 interceptor
+6️⃣ 在整体架构中的位置（与你前面的图完全一致）
+[Component]
+   ↓
+[Facade]
+   ↓
+[Http Service]
+   ↓
+[Interceptor]   ← 你现在看的就是这里
+   ↓
+[Angular HttpClient]
+
+
+👉 它在 HTTP API 切割线之下，但仍属于前端
+7️⃣ 和 .NET 的精确对照
+Angular api.interceptor
+↔
+ASP.NET Core Middleware
+↔
+HttpClient DelegatingHandler
+
+8️⃣ 一句话总结（工程视角）
+这个文件存在的意义是：
+把“HTTP 技术细节”从 Facade / Service 中彻底剥离
+
+你现在看的这个 repo（realworld angular）：
+架构是 正确的
+
