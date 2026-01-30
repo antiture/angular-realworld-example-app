@@ -1,3 +1,5 @@
+﻿
+using System.Diagnostics;
 
 namespace realword
 {
@@ -21,6 +23,19 @@ namespace realword
             {
                 app.UseSwagger();
                 app.UseSwaggerUI();
+            }
+            
+            /// 启动前端  部署去掉
+            if (app.Environment.IsDevelopment())
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName = "cmd.exe",
+                    Arguments = "/c npm start",
+                    WorkingDirectory = Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "front"),
+                    UseShellExecute = true
+                };
+                Process.Start(psi);
             }
 
             app.UseHttpsRedirection();
