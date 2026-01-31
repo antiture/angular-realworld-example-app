@@ -3,6 +3,7 @@ import { inject } from '@angular/core';
 import { UserService } from './core/auth/services/user.service';
 import { map } from 'rxjs/operators';
 
+
 export const routes: Routes = [
   {
     path: '',
@@ -31,6 +32,11 @@ export const routes: Routes = [
     path: 'profile',
     loadChildren: () => import('./features/profile/profile.routes'),
   },
+    {
+    path: 'tests',
+    loadComponent: () => import('./features/article/pages/test/test.component'),
+  },
+    
   {
     path: 'editor',
     children: [
