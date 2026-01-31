@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using RealWorld.Data;
 
-namespace realword.Controllers
+namespace RealWorld.Controllers
 {
     [ApiController]
     [Route("[controller]")]
